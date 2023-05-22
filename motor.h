@@ -3,21 +3,22 @@
 #include "encoder.h"
 #include "pico/stdlib.h"
 #include "pwm.h"
-
-
+#include "pid.h"
+#include <queue>
+#include <math.h>
 
 class Motor {
    public:
     Motor(Pwm& pwm0, Pwm& pwm1, Encoder& enc);
     void init();
-    void write(float val);
+    void setVel(float val);
+    void setPos(float target);
     void duty(float val);
     float read();
-    void setGain(float Kp, float Ki, float Kd);
-    void setGainPos(float Kp, float Ki, float Kd);
+    void setVelGain(float Kp, float Ki, float Kd);
+    void setPosGain(float Kp, float Ki, float Kd);
     void timer_cb();
     void timer_cb_pos();
-    void setTargetPos(float target);
     float getCurrentSpeed();
 
    private:
@@ -25,10 +26,8 @@ class Motor {
     Pwm& pwm1;
     Encoder& enc;
     repeating_timer_t timer;
-    float target, targetPos;
-    float prevError, prevEnc, prevErrorPos;
-    float P, I, D;
-    float Kp, Ki, Kd, Kp_pos, Ki_pos, Kd_pos;
-    float currentDuty;
-    float prev, prevPos;
+    Pid velpid, pospid;
+    float currentDuty, currentPos;
+    int prevEnc, prevPos;
+    float speeds[10];
 };

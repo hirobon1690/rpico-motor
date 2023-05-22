@@ -1,7 +1,13 @@
 #include "motor.h"
+#define PI 3.14159265358979323846
 
 Motor::Motor(Pwm& pwm0, Pwm& pwm1, Encoder& enc)
     : pwm0(pwm0), pwm1(pwm1), enc(enc) {
+    velpid.setGain(1, 0.08, 0.09);
+    velpid.setDt(0.01);
+    pospid.setGain(1, 0.08, 0.09);
+    pospid.setDt(0.1);
+    pospid.setGain(2.5, 0.08, 0.09);
 }
 
 void Motor::init() {
@@ -10,18 +16,19 @@ void Motor::init() {
     enc.init();
 }
 
-void Motor::write(float val) {
-    target = val;
+void Motor::setVel(float val) {
+    velpid.setGoal(val);
 }
 
-void Motor::setTargetPos(float target) {
-    this->targetPos = target;
+void Motor::setPos(float target) {
+    pospid.setGoal(target);
 }
 
-void Motor::setGainPos(float Kp, float Ki, float Kd) {
-    this->Kp_pos = Kp;
-    this->Ki_pos = Ki;
-    this->Kd_pos = Kd;
+void Motor::setVelGain(float Kp, float Ki, float Kd) {
+    velpid.setGain(Kp, Ki, Kd);
+}
+void Motor::setPosGain(float Kp, float Ki, float Kd) {
+    pospid.setGain(Kp, Ki, Kd);
 }
 
 void Motor::duty(float val) {
@@ -34,11 +41,22 @@ void Motor::duty(float val) {
         pwm1.write(-val);
         currentDuty = -pwm1.read();
     }
-    
 }
 
+// deg/s
 float Motor::getCurrentSpeed() {
-    return ((enc.get() - prevEnc) / 0.01) / 15000;
+    int currentEnc = enc.get();
+    float speed = ((((float)currentEnc - (float)prevEnc) * 360.0) / 1500.0) / 0.01;
+    prevEnc = currentEnc;
+    for (int i = 0; i < 3; i++) {
+        speeds[i + 1] = speeds[i];
+    }
+    speeds[0] = speed;
+    float sum = 0;
+    for (int i = 0; i < 1; i++) {
+        sum += speeds[i];
+    }
+    return sum / 1;
 }
 
 float Motor::read() {
@@ -46,32 +64,24 @@ float Motor::read() {
 }
 
 void Motor::timer_cb() {
-    int encoder = enc.get();
-    float currentSpeed = ((encoder - prevEnc) / 0.01) / 7500;
-    // printf("%f\n", currentSpeed);
-    prevEnc = encoder;
-    P = target - currentSpeed;
-    I += P;
-    D = (P - prevError) / 0.01;
-    duty(Kp * P + Ki * I + Kd * D + prev);
-    prev = Kp * P + Ki * I + Kd * D + prev;
-    prevError = P;
+    float speed = getCurrentSpeed();
+    velpid.update(speed);
+    // printf("%f\n", speed);
+    float a = velpid.calc();
+    // printf("%f, %f\n", currentDuty, speed);
+    duty(currentDuty + a / 10000);
 }
 
 void Motor::timer_cb_pos() {
-    static float I;
-    float current = (float)enc.get()/6300.0*360;
-    printf("%f\n", current);
-    float P = targetPos - current;
-    I += P;
-    float D = (P - prevErrorPos) / 0.01;
-    write(Kp_pos * P + Ki_pos * I + Kd_pos * D);
-    prevErrorPos = P;
-}
-
-
-void Motor::setGain(float Kp, float Ki, float Kd) {
-    this->Kp = Kp;
-    this->Ki = Ki;
-    this->Kd = Kd;
+    float pos = enc.get() * 360.0 / 1500.0;
+    pospid.update(pos);
+    float a = pospid.calc();
+    printf("%f, %f\n", pos, a);
+    if (std::abs(a) > 7.5) {
+        setVel(a);
+    }else{
+        setVel(0);
+        duty(0);
+    }
+    
 }
