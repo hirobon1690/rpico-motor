@@ -20,6 +20,7 @@ class Motor {
     void timer_cb();
     void timer_cb_pos();
     float getCurrentSpeed();
+    void disablePosPid();
 
    private:
     Pwm& pwm0;
@@ -30,4 +31,6 @@ class Motor {
     float currentDuty, currentPos;
     int prevEnc, prevPos;
     float speeds[10];
+    bool isPosPidEnabled;
+    const int MAX_SPEED = 540;
 };
