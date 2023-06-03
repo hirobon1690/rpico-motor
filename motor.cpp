@@ -1,8 +1,8 @@
 #include "motor.h"
 #define PI 3.14159265358979323846
 
-Motor::Motor(Pwm& pwm0, Pwm& pwm1, Encoder& enc)
-    : pwm0(pwm0), pwm1(pwm1), enc(enc) {
+Motor::Motor(Gpio& dir0, Gpio& dir1, Pwm& pwm0, Encoder& enc)
+    : dir0(dir0), dir1(dir1), pwm0(pwm0), enc(enc) {
     velpid.setGain(1, 0.08, 0.09);
     velpid.setDt(0.01);
     pospid.setGain(1.2, 0.08, 0.09);
@@ -11,8 +11,9 @@ Motor::Motor(Pwm& pwm0, Pwm& pwm1, Encoder& enc)
 }
 
 void Motor::init() {
+    dir0.init();
+    dir1.init();
     pwm0.init();
-    pwm1.init();
     enc.init();
 }
 
@@ -40,12 +41,14 @@ void Motor::setPosGain(float Kp, float Ki, float Kd) {
 void Motor::duty(float val) {
     if (val > 0) {
         pwm0.write(val);
-        pwm1.write(0);
+        dir0.write(0);
+        dir1.write(1);
         currentDuty = pwm0.read();
     } else {
-        pwm0.write(0);
-        pwm1.write(-val);
-        currentDuty = -pwm1.read();
+        pwm0.write(-val);
+        dir0.write(1);
+        dir1.write(0);
+        currentDuty = -pwm0.read();
     }
 }
 
@@ -92,7 +95,6 @@ void Motor::timer_cb_pos() {
         setVel(0);
         duty(0);
     }
-    
 }
 
 void Motor::disablePosPid() {

@@ -4,12 +4,13 @@
 #include "pico/stdlib.h"
 #include "pwm.h"
 #include "pid.h"
+#include "gpio.h"
 #include <queue>
 #include <math.h>
 
 class Motor {
    public:
-    Motor(Pwm& pwm0, Pwm& pwm1, Encoder& enc);
+    Motor(Gpio& dir0, Gpio& dir1, Pwm& Pwm0, Encoder& enc);
     void init();
     void setVel(float val);
     void setPos(float target);
@@ -23,8 +24,9 @@ class Motor {
     void disablePosPid();
 
    private:
+    Gpio& dir0;
+    Gpio& dir1;
     Pwm& pwm0;
-    Pwm& pwm1;
     Encoder& enc;
     repeating_timer_t timer;
     Pid velpid, pospid;
