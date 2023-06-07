@@ -77,7 +77,7 @@ void Motor::timer_cb() {
     velpid.update(speed);
     // printf("%f\n", speed);
     float a = velpid.calc();
-    printf("%f, %f\n", currentDuty, speed);
+    // printf("%f, %f\n", currentDuty, speed);
     duty(currentDuty + a / 10000);
 }
 
