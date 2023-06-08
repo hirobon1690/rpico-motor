@@ -22,6 +22,7 @@ class Motor {
     void timer_cb_pos();
     float getCurrentSpeed();
     void disablePosPid();
+    void resetPos();
 
    private:
     Gpio& dir0;

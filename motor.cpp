@@ -7,7 +7,7 @@ Motor::Motor(Gpio& dir0, Gpio& dir1, Pwm& pwm0, Encoder& enc)
     velpid.setDt(0.01);
     pospid.setGain(1.2, 0.08, 0.09);
     pospid.setDt(0.1);
-    pospid.setGain(2.5, 0.08, 0.09);
+    pospid.setGain(2.5, 0.08, 0.12);
 }
 
 void Motor::init() {
@@ -18,9 +18,9 @@ void Motor::init() {
 }
 
 void Motor::setVel(float val) {
-    if(val > MAX_SPEED){
+    if (val > MAX_SPEED) {
         val = MAX_SPEED;
-    }else if(val < -MAX_SPEED){
+    } else if (val < -MAX_SPEED) {
         val = -MAX_SPEED;
     }
     velpid.setGoal(val);
@@ -28,7 +28,7 @@ void Motor::setVel(float val) {
 
 void Motor::setPos(float target) {
     isPosPidEnabled = true;
-    pospid.setGoal(target);
+    pospid.setGoal(target*1.111);
 }
 
 void Motor::setVelGain(float Kp, float Ki, float Kd) {
@@ -88,10 +88,10 @@ void Motor::timer_cb_pos() {
     float pos = enc.get() * 360.0 / 1500.0;
     pospid.update(pos);
     float a = pospid.calc();
-    // printf("%f, %f\n", pos, a);
-    if (std::abs(a) > 7.5) {
+    printf("%f, %f\n", pos, a);
+    if (std::abs(a) > 3.5) {
         setVel(a);
-    }else{
+    } else {
         setVel(0);
         duty(0);
     }
@@ -99,4 +99,10 @@ void Motor::timer_cb_pos() {
 
 void Motor::disablePosPid() {
     isPosPidEnabled = false;
+}
+
+void Motor::resetPos() {
+    enc.set(0);
+    currentPos = 0;
+    prevPos = 0;
 }
