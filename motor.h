@@ -1,12 +1,12 @@
 #pragma once
-#include <stdio.h>
-#include "encoder.h"
-#include "pico/stdlib.h"
-#include "pwm.h"
-#include "pid.h"
-#include "gpio.h"
-#include <queue>
 #include <math.h>
+#include <stdio.h>
+#include <queue>
+#include "encoder.h"
+#include "gpio.h"
+#include "pico/stdlib.h"
+#include "pid.h"
+#include "pwm.h"
 
 class Motor {
    public:
@@ -23,6 +23,7 @@ class Motor {
     float getCurrentSpeed();
     void disablePosPid();
     void resetPos();
+    float currentDuty, currentPos;
 
    private:
     Gpio& dir0;
@@ -31,7 +32,6 @@ class Motor {
     Encoder& enc;
     repeating_timer_t timer;
     Pid velpid, pospid;
-    float currentDuty, currentPos;
     int prevEnc, prevPos;
     float speeds[10];
     bool isPosPidEnabled;

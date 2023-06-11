@@ -18,7 +18,9 @@ void Motor::init() {
 }
 
 void Motor::setVel(float val) {
-    if (val > MAX_SPEED) {
+    if (val == 0) {
+        duty(0);
+    } else if (val > MAX_SPEED) {
         val = MAX_SPEED;
     } else if (val < -MAX_SPEED) {
         val = -MAX_SPEED;
@@ -28,7 +30,7 @@ void Motor::setVel(float val) {
 
 void Motor::setPos(float target) {
     isPosPidEnabled = true;
-    pospid.setGoal(target*1.111);
+    pospid.setGoal(target * 1.111);
 }
 
 void Motor::setVelGain(float Kp, float Ki, float Kd) {
@@ -39,7 +41,7 @@ void Motor::setPosGain(float Kp, float Ki, float Kd) {
 }
 
 void Motor::duty(float val) {
-    if (val > 0) {
+    if (val >= 0) {
         pwm0.write(val);
         dir0.write(0);
         dir1.write(1);
@@ -77,7 +79,7 @@ void Motor::timer_cb() {
     velpid.update(speed);
     // printf("%f\n", speed);
     float a = velpid.calc();
-    // printf("%f, %f\n", currentDuty, speed);
+    printf("%f, %f\n", currentDuty, speed);
     duty(currentDuty + a / 10000);
 }
 
@@ -88,7 +90,7 @@ void Motor::timer_cb_pos() {
     float pos = enc.get() * 360.0 / 1500.0;
     pospid.update(pos);
     float a = pospid.calc();
-    printf("%f, %f\n", pos, a);
+    // printf("%f, %f\n", pos, a);
     if (std::abs(a) > 3.5) {
         setVel(a);
     } else {
@@ -102,7 +104,10 @@ void Motor::disablePosPid() {
 }
 
 void Motor::resetPos() {
+    // setPos(0);
+    disablePosPid();
     enc.set(0);
     currentPos = 0;
     prevPos = 0;
+    prevEnc = 0;
 }
