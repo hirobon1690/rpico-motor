@@ -79,15 +79,15 @@ void Motor::timer_cb() {
     velpid.update(speed);
     // printf("%f\n", speed);
     float a = velpid.calc();
-    printf("%f, %f\n", currentDuty, speed);
+    // printf("%f, %f\n", currentDuty, speed);
     duty(currentDuty + a / 10000);
 }
 
 void Motor::timer_cb_pos() {
+    float pos = enc.get() * 360.0 / 1500.0;
     if (!isPosPidEnabled) {
         return;
     }
-    float pos = enc.get() * 360.0 / 1500.0;
     pospid.update(pos);
     float a = pospid.calc();
     // printf("%f, %f\n", pos, a);
