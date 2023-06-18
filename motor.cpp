@@ -30,7 +30,7 @@ void Motor::setVel(float val) {
 
 void Motor::setPos(float target) {
     isPosPidEnabled = true;
-    pospid.setGoal(target * 1.111);
+    pospid.setGoal(target * 1.2);
 }
 
 void Motor::setVelGain(float Kp, float Ki, float Kd) {
