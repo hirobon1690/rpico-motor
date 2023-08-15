@@ -1,6 +1,6 @@
 #pragma once
 #include <stdio.h>
-#include "encoder.h"
+#include "encoderBase.h"
 #include "pico/stdlib.h"
 #include "pwm.h"
 #include "pid.h"
