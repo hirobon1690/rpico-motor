@@ -1,8 +1,9 @@
 #pragma once
+#include <hardware/spi.h>
 #include <math.h>
 #include <stdio.h>
 #include <queue>
-#include "encoder.h"
+#include "encoderBase.h"
 #include "gpio.h"
 #include "pico/stdlib.h"
 #include "pid.h"
@@ -10,7 +11,7 @@
 
 class Motor {
    public:
-    Motor(Gpio& dir0, Gpio& dir1, Pwm& Pwm0, Encoder& enc);
+    Motor(Gpio& dir0, Pwm& Pwm0, Encoder& enc, Gpio& cs);
     void init();
     void setVel(float val);
     void setPos(float target);
@@ -27,7 +28,7 @@ class Motor {
 
    private:
     Gpio& dir0;
-    Gpio& dir1;
+    Gpio& cs;
     Pwm& pwm0;
     Encoder& enc;
     repeating_timer_t timer;
