@@ -12,7 +12,7 @@
 class Motor {
    public:
     Motor(Gpio& dir0, Pwm& Pwm0, Encoder& enc, Gpio& cs);
-    void init();
+    void init(bool isReverse = false);
     void setVel(float val);
     void setPos(float target);
     void duty(float val);
@@ -24,6 +24,7 @@ class Motor {
     float getCurrentSpeed();
     void disablePosPid();
     void resetPos();
+    void setMaxSpeed(float maxSpeed);
     float currentDuty, currentPos;
 
    private:
@@ -36,5 +37,6 @@ class Motor {
     int prevEnc, prevPos;
     float speeds[10];
     bool isPosPidEnabled;
-    const int MAX_SPEED = 540;
+    int MAX_SPEED = 540;
+    bool isReverse;
 };

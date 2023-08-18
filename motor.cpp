@@ -10,7 +10,7 @@ Motor::Motor(Gpio& dir0, Pwm& pwm0, Encoder& enc, Gpio& cs)
     // pospid.setGain(2.5, 0.08, 0.12);
 }
 
-void Motor::init() {
+void Motor::init(bool isReverse) {
     dir0.init();
     pwm0.init();
     enc.init();
@@ -25,6 +25,7 @@ void Motor::init() {
     spi_write_read_blocking(spi0, config_data, nullptr, 2);
     cs.write(1);
     prevEnc = enc.get();
+    this->isReverse = isReverse;
 }
 
 void Motor::setVel(float val) {
@@ -53,11 +54,11 @@ void Motor::setPosGain(float Kp, float Ki, float Kd) {
 void Motor::duty(float val) {
     if (val >= 0) {
         pwm0.write(val);
-        dir0.write(1);
+        dir0.write(!isReverse);
         currentDuty = pwm0.read();
     } else {
         pwm0.write(-val);
-        dir0.write(0);
+        dir0.write(isReverse);
         currentDuty = -pwm0.read();
     }
 }
@@ -118,4 +119,8 @@ void Motor::resetPos() {
     currentPos = 0;
     prevPos = 0;
     prevEnc = 0;
+}
+
+void Motor::setMaxSpeed(float maxSpeed) {
+    MAX_SPEED = maxSpeed;
 }
